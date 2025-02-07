@@ -203,8 +203,13 @@ pub fn main() anyerror!void {
         //--------------------------------------------------------------------------------------
         const rightDown = rl.isKeyPressed(rl.KeyboardKey.right);
         const leftDown  = rl.isKeyPressed(rl.KeyboardKey.left);
+        const upDown    = rl.isKeyPressed(rl.KeyboardKey.up);
 
-        if (rightDown or leftDown) {
+        if (upDown) {
+            if (cardSet.selectNextCard(CardSelection.Random)) |card| {
+                texture = card.imageTexture;
+            }
+        } else if (rightDown or leftDown) {
             const direction = if (rightDown) CardSelection.Right else CardSelection.Left;
             if (cardSet.selectNextCard(direction)) |card| {
                 texture = card.imageTexture;
