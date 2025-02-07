@@ -19,9 +19,11 @@ pub const CardSelectionError = error {
 
 pub const CardSet = struct {
     cardCount: usize = 0,
-    selectionIndex: usize = 0,
+    historyIndex: usize = 0,
+    selectionIndex: usize,
     cards: ArrayList(Card),
     alreadySelected: std.AutoHashMap(usize, bool),
+    indexHistory: ArrayList(usize),
     randomizer: Random.Xoshiro256,
 
     pub fn init(cards: ArrayList(Card), allocator: std.mem.Allocator) CardSet {
@@ -32,12 +34,16 @@ pub const CardSet = struct {
         const selectionIndex = Random.uintLessThan(randomizer.random(), usize, cards.items.len);
         alreadySelected.put(selectionIndex, true) catch {};
 
+        var indexHistory = ArrayList(usize).init(allocator);
+        indexHistory.append(selectionIndex) catch {};
+
         return CardSet {
             .cardCount = cards.items.len,
             .cards = cards,
             .selectionIndex = selectionIndex,
             .alreadySelected = alreadySelected,
-            .randomizer = randomizer
+            .randomizer = randomizer,
+            .indexHistory = indexHistory
         };
     }
 
@@ -51,6 +57,7 @@ pub const CardSet = struct {
         }
         self.cards.deinit();
         self.alreadySelected.deinit();
+        self.indexHistory.deinit();
     }
 
     pub fn selectNextCard(self: *CardSet, direction: CardSelection) ?Card {
@@ -66,6 +73,13 @@ pub const CardSet = struct {
         }
     }
 
+    pub fn updateSelectionIndex(self: *CardSet, newIndex: usize) void {
+        self.selectionIndex = newIndex;
+        self.alreadySelected.put(newIndex, true) catch {};
+        self.indexHistory.append(newIndex) catch {};
+        self.historyIndex = self.indexHistory.items.len - 1;
+    }
+
     pub fn selectNextCardRandomly(self: *CardSet) ?Card {
         var nextIndex = Random.uintLessThan(self.randomizer.random(), usize, self.cardCount);
         std.debug.print("index={} alreadySelected={}\n", .{nextIndex, self.alreadySelected.contains(nextIndex)});
@@ -73,26 +87,22 @@ pub const CardSet = struct {
         while (self.alreadySelected.contains(nextIndex)) {
             nextIndex = Random.uintLessThan(self.randomizer.random(), usize, self.cardCount);
         }
-        self.alreadySelected.put(nextIndex, true) catch |err| {
-            std.debug.print("Could not put index into alreadySelected hash... index={}, err={}", .{nextIndex, err});
-        };
-        self.selectionIndex = nextIndex;
+        self.updateSelectionIndex(nextIndex);
 
         return self.currentCard();
     }
 
     pub fn selectNextCardByDirection(self: *CardSet, direction: CardSelection) ?Card {
         const offset: i2 = if (direction == CardSelection.Right) 1 else -1;
-        const newIndex: i16 = @as(i16, @intCast(self.selectionIndex)) + offset;
-        if (0 <= newIndex and newIndex < (self.cardCount - 1)) {
-            const replacementIndex: usize = @as(usize, @intCast(newIndex));
-            self.selectionIndex = replacementIndex;
+        const newIndex: i16 = @as(i16, @intCast(self.historyIndex)) + offset;
+
+        if (0 <= newIndex and newIndex < self.indexHistory.items.len) {
+            self.historyIndex = @as(usize, @intCast(newIndex));
+            return self.cards.items[self.indexHistory.items[self.historyIndex]];
         } else {
             std.debug.print("Selection Error={}\n", .{CardSelectionError.OutOfBounds});
             return null;
         }
-
-        return self.currentCard();
     }
 
     pub fn currentCard(self: CardSet) Card {
