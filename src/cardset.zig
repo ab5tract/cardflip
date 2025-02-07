@@ -98,11 +98,13 @@ pub const CardSet = struct {
 
         if (0 <= newIndex and newIndex < self.indexHistory.items.len) {
             self.historyIndex = @as(usize, @intCast(newIndex));
-            return self.cards.items[self.indexHistory.items[self.historyIndex]];
+            self.selectionIndex = self.indexHistory.items[self.historyIndex];
         } else {
             std.debug.print("Selection Error={}\n", .{CardSelectionError.OutOfBounds});
             return null;
         }
+
+        return self.currentCard();
     }
 
     pub fn currentCard(self: CardSet) Card {

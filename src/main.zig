@@ -10,26 +10,18 @@ const Texture2D = rl.Texture2D;
 const Rectangle = rl.Rectangle;
 
 const RaylibError = rl.RaylibError;
+const Error = @import("constants.zig").Error;
 
 const Card = @import("card.zig").Card;
-const CardSelection = @import("cardset.zig").CardSelection;
 const CardSet = @import("cardset.zig").CardSet;
+const CardSelection = @import("cardset.zig").CardSelection;
 
 // Setup
-const screenWidth = 600;
-const screenHeight = 800;
+const screenWidth  = @import("constants.zig").ScreenWidth;
+const screenHeight = @import("constants.zig").ScreenHeight;
 
 const screen = Rectangle.init(0, 0, screenWidth, screenHeight);
 
-pub inline fn cardCenter(card: Card) Rectangle {
-    const texture = card.imageTexture;
-    return Rectangle.init(
-        @as(f32, @floatFromInt(texture.width)) / 2.0,
-        @as(f32, @floatFromInt(texture.height)),
-        screenWidth,
-        screenHeight
-    );
-}
 
 const CenterCoord = struct {
     x: c_int,
@@ -55,14 +47,6 @@ pub inline fn centeredCoord(widthSpan: c_int, heightSpan: c_int) CenterCoord {
 }
 
 // Errors are defined in error enumerations, example:
-const Error = error {
-    FileNotFound,
-    PathNotADirectory,
-    ImageNotLoadedIntoTexture,
-    NoValidImageFilesProvided,
-    Unknown,
-    InvalidArgumentCombination
-};
 
 fn isImageFile(fileName: []const u8) bool {
     return (std.mem.count(u8, fileName, ".jpg") > 0)
@@ -151,10 +135,8 @@ pub fn main() anyerror!void {
     };
     defer res.deinit();
 
-    // TODO: Revisit positional CLI args
     const hasPositionals = res.positionals.len > 0;
     const hasPathParam   = res.args.path != null;
-
     if (hasPositionals and hasPathParam) {
         return Error.InvalidArgumentCombination;
     }
@@ -225,8 +207,8 @@ pub fn main() anyerror!void {
 
         rl.drawTexturePro(
             texture,
-            cardCenter(cardSet.currentCard()),
-            Rectangle.init(screen.x, screen.y, screenWidth, screenHeight - 100),
+            cardSet.currentCard().cardCenter(),
+            Rectangle.init(screen.x, screen.y, screenWidth, screenHeight),
             rl.Vector2.zero(),
             0,
             Color.white
