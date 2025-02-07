@@ -17,34 +17,7 @@ const CardSet = @import("cardset.zig").CardSet;
 const CardSelection = @import("cardset.zig").CardSelection;
 
 // Setup
-const screenWidth  = @import("constants.zig").ScreenWidth;
-const screenHeight = @import("constants.zig").ScreenHeight;
-
-const screen = Rectangle.init(0, 0, screenWidth, screenHeight);
-
-
-const CenterCoord = struct {
-    x: c_int,
-    y: c_int,
-    floatX: f32,
-    floatY: f32,
-
-    pub fn init(widthSpan: i32, heightSpan: i32) CenterCoord {
-        const clarifiedX = @divTrunc(widthSpan, 2 - @divFloor(screenWidth, 2));
-        const clarifiedY = @divTrunc(heightSpan, 2 - @divFloor(screenHeight, 4));
-
-        return CenterCoord {
-            .x = screenWidth / 2 - @divFloor(widthSpan,  2),
-            .y = screenHeight / 2 - @divFloor(heightSpan, 2),
-            .floatX = @as(f32, @floatFromInt(clarifiedX)),
-            .floatY = @as(f32, @floatFromInt(clarifiedY))
-        };
-    }
-};
-
-pub inline fn centeredCoord(widthSpan: c_int, heightSpan: c_int) CenterCoord {
-    return CenterCoord.init(widthSpan, heightSpan);
-}
+const screen = @import("constants.zig").Screen;
 
 // Errors are defined in error enumerations, example:
 
@@ -108,8 +81,8 @@ pub fn main() anyerror!void {
     //--------------------------------------------------------------------------------------
     // NOTE: Textures MUST be loaded after Window initialization (OpenGL context is required)
     rl.initWindow(
-        screenWidth,
-        screenHeight,
+        screen.width,
+        screen.height,
         "Cardflip",
     );
 
@@ -204,11 +177,10 @@ pub fn main() anyerror!void {
         rl.beginDrawing();
         rl.clearBackground(Color.black);
 
-
         rl.drawTexturePro(
             texture,
             cardSet.currentCard().cardCenter(),
-            Rectangle.init(screen.x, screen.y, screenWidth, screenHeight),
+            screen,
             rl.Vector2.zero(),
             0,
             Color.white
