@@ -18,3 +18,15 @@ pub const Error = error {
     Unknown,
     InvalidArgumentCombination
 };
+
+pub const Dim2D = struct {
+    width: f32,
+    height: f32,
+
+    pub fn init(w: f32, h: f32) Dim2D {
+        return Dim2D {
+            .width  = w,
+            .height = h
+        };
+    }
+};

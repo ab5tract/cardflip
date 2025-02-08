@@ -20,7 +20,24 @@ const CardSelection = @import("cardset.zig").CardSelection;
 
 // Setup
 const screen = @import("constants.zig").Screen;
+const Dim2D  = @import("constants.zig").Dim2D;
 
+var bordersToggled: bool = false;
+
+fn prepareWindow(width: i32, height: i32) void {
+   const monitor = rl.getCurrentMonitor();
+
+   const finalX = @divTrunc(rl.getMonitorWidth(monitor), 2) - @divTrunc(width, 2);
+   const finalY = @divTrunc(rl.getMonitorHeight(monitor), 2) - @divTrunc(height, 2);
+
+   rl.setWindowPosition(finalX, finalY);
+   rl.setWindowSize(width, height);
+   // TODO: This doesn't cause a "window context" on macOS Stage Manager
+   if (! bordersToggled) {
+       //rl.toggleBorderlessWindowed();
+       bordersToggled = true;
+   }
+}
 // Errors are defined in error enumerations, example:
 
 //--------------------------------------------------------------------------------------
@@ -131,7 +148,7 @@ pub fn main() anyerror!void {
         //--------------------------------------------------------------------------------------
         const adjustedWidth: i32  = @intFromFloat(cardSet.currentCard().renderWidth);
         const adjustedHeight: i32 = @intFromFloat(cardSet.currentCard().renderHeight);
-        rl.setWindowSize(adjustedWidth, adjustedHeight);
+        prepareWindow(adjustedWidth, adjustedHeight);
 
         rl.beginDrawing();
         rl.clearBackground(Color.black);

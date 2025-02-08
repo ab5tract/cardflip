@@ -1,14 +1,16 @@
 const std = @import("std");
-
 const rl = @import("raylib");
+const constants = @import("constants.zig");
+
 const Image = rl.Image;
 const Texture2D = rl.Texture2D;
 const Rectangle = rl.Rectangle;
+const Dim2D = constants.Dim2D;
 
-const screenWidth  = @import("constants.zig").ScreenWidth;
-const screenHeight = @import("constants.zig").ScreenHeight;
-const screenWidthFloat  = @import("constants.zig").WidthFloat;
-const screenHeightFloat = @import("constants.zig").HeightFloat;
+const screenWidth  = constants.ScreenWidth;
+const screenHeight = constants.ScreenHeight;
+const screenWidthFloat  = constants.WidthFloat;
+const screenHeightFloat = constants.HeightFloat;
 
 pub const Card = struct {
     imageTexture: Texture2D,
@@ -22,8 +24,10 @@ pub const Card = struct {
         const textureHeight: f32 = @floatFromInt(imageTexture.height);
 
         const tooBig = screenWidthFloat < textureWidth or screenHeightFloat < textureHeight;
-        const renderWidth  = if (tooBig) determineRenderSize(textureWidth) else textureWidth;
-        const renderHeight = if (tooBig) determineRenderSize(textureHeight) else textureHeight;
+        const adjusted = determineRenderSize(textureWidth, textureHeight);
+
+        const renderWidth  = if (tooBig) adjusted.width  else textureWidth;
+        const renderHeight = if (tooBig) adjusted.height else textureHeight;
 
         return Card {
             .imageTexture  = imageTexture,
@@ -58,6 +62,22 @@ pub const Card = struct {
     }
 };
 
-fn determineRenderSize(dimSize: f32) f32 {
-    return dimSize * (screenHeightFloat / screenWidthFloat);
+fn determineRenderSize(width: f32, height: f32) Dim2D {
+    const widthTooBig = screenWidthFloat < width;
+    const heightTooBig = screenWidthFloat < height;
+
+    var adjustedWidth  = width;
+    var adjustedHeight = height;
+    if (widthTooBig) {
+        const adjust = screenWidthFloat / width;
+        adjustedWidth  = adjustedWidth * adjust;
+        adjustedHeight = adjustedHeight * adjust;
+    }
+    if (heightTooBig) {
+        const adjust = screenHeightFloat / height;
+        adjustedHeight = adjustedHeight * adjust;
+        adjustedWidth  = adjustedWidth * adjust;
+    }
+
+    return Dim2D.init(adjustedWidth, adjustedHeight);
 }
