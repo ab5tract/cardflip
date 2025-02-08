@@ -129,13 +129,17 @@ pub fn main() anyerror!void {
 
         // Draw
         //--------------------------------------------------------------------------------------
+        const adjustedWidth: i32  = @intFromFloat(cardSet.currentCard().renderWidth);
+        const adjustedHeight: i32 = @intFromFloat(cardSet.currentCard().renderHeight);
+        rl.setWindowSize(adjustedWidth, adjustedHeight);
+
         rl.beginDrawing();
         rl.clearBackground(Color.black);
 
         rl.drawTexturePro(
             texture,
-            cardSet.currentCard().cardCenter(),
-            screen,
+            cardSet.currentCard().sourceRect(),
+            cardSet.currentCard().destRect(),
             rl.Vector2.zero(),
             0,
             Color.white
