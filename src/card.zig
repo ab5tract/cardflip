@@ -20,8 +20,8 @@ pub const Card = struct {
     pub fn init(imageTexture: Texture2D) Card {
         const textureWidth: f32  = @floatFromInt(imageTexture.width);
         const textureHeight: f32 = @floatFromInt(imageTexture.height);
-        const tooBig = screenWidthFloat < textureWidth or screenHeightFloat < textureHeight;
 
+        const tooBig = screenWidthFloat < textureWidth or screenHeightFloat < textureHeight;
         const renderWidth  = if (tooBig) determineRenderSize(textureWidth) else textureWidth;
         const renderHeight = if (tooBig) determineRenderSize(textureHeight) else textureHeight;
 
@@ -44,6 +44,17 @@ pub const Card = struct {
 
     pub fn sourceRect(self: Card) Rectangle {
         return Rectangle.init(0, 0, self.textureWidth, self.textureHeight);
+    }
+
+    pub fn render(self: Card) void {
+        rl.drawTexturePro(
+            self.imageTexture,
+            self.sourceRect(),
+            self.destRect(),
+            rl.Vector2.zero(),
+            0,
+            rl.Color.white
+        );
     }
 };
 

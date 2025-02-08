@@ -136,14 +136,7 @@ pub fn main() anyerror!void {
         rl.beginDrawing();
         rl.clearBackground(Color.black);
 
-        rl.drawTexturePro(
-            texture,
-            cardSet.currentCard().sourceRect(),
-            cardSet.currentCard().destRect(),
-            rl.Vector2.zero(),
-            0,
-            Color.white
-        );
+        cardSet.currentCard().render();
 
         rl.endDrawing();
         //--------------------------------------------------------------------------------------
