@@ -65,6 +65,18 @@ pub const CardSet = struct {
         self.indexHistory.deinit();
     }
 
+    pub fn updateSelectionIndex(self: *CardSet, newIndex: usize) void {
+        self.selectionIndex = newIndex;
+        self.alreadySelected.put(newIndex, true) catch {};
+        self.indexHistory.append(newIndex) catch {};
+        self.historyIndex = self.indexHistory.items.len - 1;
+    }
+
+    pub fn currentCard(self: CardSet) ?Card {
+        if ((self.cardCount - 1) < self.selectionIndex) return null;
+        return self.cards.items[self.selectionIndex];
+    }
+
     pub fn selectNextCard(self: *CardSet, direction: CardSelection) ?Card {
         if (direction == CardSelection.Random) {
             const currentSize: usize = @intCast(self.alreadySelected.count());
@@ -76,13 +88,6 @@ pub const CardSet = struct {
         } else {
             return self.selectNextCardByDirection(direction);
         }
-    }
-
-    pub fn updateSelectionIndex(self: *CardSet, newIndex: usize) void {
-        self.selectionIndex = newIndex;
-        self.alreadySelected.put(newIndex, true) catch {};
-        self.indexHistory.append(newIndex) catch {};
-        self.historyIndex = self.indexHistory.items.len - 1;
     }
 
     pub fn selectNextCardRandomly(self: *CardSet) ?Card {
@@ -110,11 +115,6 @@ pub const CardSet = struct {
         }
 
         return self.currentCard();
-    }
-
-    pub fn currentCard(self: CardSet) ?Card {
-        if ((self.cardCount - 1) < self.selectionIndex) return null;
-        return self.cards.items[self.selectionIndex];
     }
 };
 
