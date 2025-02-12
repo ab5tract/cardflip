@@ -113,7 +113,7 @@ pub fn main() anyerror!void {
     }
     if (filePaths.items.len == 0) return Error.NoValidImageFilesProvided;
 
-    var cardSet = CardSet.initFromFilePaths(filePaths, gpa.allocator());
+    var cardSet = CardSet.initFromFilePaths(filePaths, screenDimension, gpa.allocator());
     if (cardSet.cards.items.len == 0) return Error.NoValidImageFilesProvided;
 
     var currentCard: Card = cardSet.currentCard() orelse return Error.ImageNotLoadedIntoTexture;

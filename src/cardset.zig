@@ -9,6 +9,9 @@ const Texture2D = rl.Texture2D;
 const Image = rl.Image;
 const Card = @import("card.zig").Card;
 
+const screenDimension = @import("constants.zig").ScreenDimension;
+const Dim2D = @import("constants.zig").Dim2D;
+
 pub const CardSelection = enum {
     Left, Right, Random
 };
@@ -25,8 +28,9 @@ pub const CardSet = struct {
     alreadySelected: std.AutoHashMap(usize, bool),
     indexHistory: ArrayList(usize),
     randomizer: Random.Xoshiro256,
+    cardDimension: Dim2D,
 
-    pub fn init(cards: ArrayList(Card), allocator: std.mem.Allocator) CardSet {
+    pub fn init(cards: ArrayList(Card), cardDimension: Dim2D, allocator: std.mem.Allocator) CardSet {
         const seed: u64 = @intCast(std.time.milliTimestamp());
         var alreadySelected = std.AutoHashMap(usize, bool).init(allocator);
 
@@ -43,12 +47,13 @@ pub const CardSet = struct {
             .selectionIndex = selectionIndex,
             .alreadySelected = alreadySelected,
             .randomizer = randomizer,
-            .indexHistory = indexHistory
+            .indexHistory = indexHistory,
+            .cardDimension = cardDimension
         };
     }
 
-    pub fn initFromFilePaths(filePaths: ArrayList([]const u8), allocator: std.mem.Allocator) CardSet {
-        return cardSetFromFilePaths(filePaths, allocator);
+    pub fn initFromFilePaths(filePaths: ArrayList([]const u8), cardDimension: Dim2D, allocator: std.mem.Allocator) CardSet {
+        return cardSetFromFilePaths(filePaths, cardDimension, allocator);
     }
 
     pub fn deinit(self: *CardSet) void {
@@ -115,6 +120,7 @@ pub const CardSet = struct {
 
 fn cardSetFromFilePaths(
     filePaths: ArrayList([]const u8),
+    cardDimension: Dim2D,
     allocator: std.mem.Allocator
 ) CardSet {
     defer filePaths.deinit();
@@ -143,9 +149,9 @@ fn cardSetFromFilePaths(
 
         if (imageTexture) |*texture| {
             std.debug.print("+++ Creating card from file: {s}\n", .{path});
-            cards.append(Card.init(texture.*)) catch continue;
+            cards.append(Card.init(texture.*, cardDimension)) catch continue;
         }
     }
 
-    return CardSet.init(cards, allocator);
+    return CardSet.init(cards, cardDimension, allocator);
 }

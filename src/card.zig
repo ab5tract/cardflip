@@ -18,10 +18,10 @@ pub const Card = struct {
     renderDimension: Dim2D,
     textureDimension: Dim2D,
 
-    pub fn init(imageTexture: Texture2D) Card {
+    pub fn init(imageTexture: Texture2D, constraint: Dim2D) Card {
         const textureDimension = Dim2D.init(@floatFromInt(imageTexture.width), @floatFromInt(imageTexture.height));
 
-        const tooBig = screenWidthFloat < textureDimension.width or screenHeightFloat < textureDimension.height;
+        const tooBig = constraint.width < textureDimension.width or constraint.height < textureDimension.height;
         const adjusted = constrainToRenderDimension(textureDimension, screenDimension);
 
         const renderWidth  = if (tooBig) adjusted.width  else textureDimension.width;
