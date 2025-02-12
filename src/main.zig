@@ -1,7 +1,6 @@
 const std = @import("std");
 const rl = @import("raylib");
 const clap = @import("clap");
-
 const load = @import("loading.zig");
 
 const ArrayList = std.ArrayList;
@@ -20,6 +19,7 @@ const CardSelection = @import("cardset.zig").CardSelection;
 
 // Setup
 const screen = @import("constants.zig").Screen;
+const screenDimension = @import("constants.zig").ScreenDimension;
 const Dim2D  = @import("constants.zig").Dim2D;
 
 var bordersToggled: bool = false;
@@ -32,8 +32,8 @@ fn prepareWindow(width: i32, height: i32) void {
 
    rl.setWindowPosition(finalX, finalY);
    rl.setWindowSize(width, height);
-   // TODO: This doesn't cause a "window context" on macOS Stage Manager
    if (! bordersToggled) {
+       // TODO: This doesn't cause a "window context" on macOS Stage Manager
        //rl.toggleBorderlessWindowed();
        bordersToggled = true;
    }
@@ -116,7 +116,8 @@ pub fn main() anyerror!void {
     var cardSet = CardSet.initFromFilePaths(filePaths, gpa.allocator());
     if (cardSet.cards.items.len == 0) return Error.NoValidImageFilesProvided;
 
-    var texture = cardSet.currentCard().imageTexture;
+    var currentCard: Card = cardSet.currentCard() orelse return Error.ImageNotLoadedIntoTexture;
+    var texture = currentCard.imageTexture;
 
     // De-Initialization
     //--------------------------------------------------------------------------------------
@@ -134,26 +135,28 @@ pub fn main() anyerror!void {
 
         if (upDown) {
             if (cardSet.selectNextCard(CardSelection.Random)) |card| {
-                texture = card.imageTexture;
+                currentCard = card;
+                texture = currentCard.imageTexture;
             }
         } else if (rightDown or leftDown) {
             const direction = if (rightDown) CardSelection.Right else CardSelection.Left;
             if (cardSet.selectNextCard(direction)) |card| {
-                texture = card.imageTexture;
+                currentCard = card;
+                texture = currentCard.imageTexture;
             }
         }
         //--------------------------------------------------------------------------------------
 
         // Draw
         //--------------------------------------------------------------------------------------
-        const adjustedWidth: i32  = @intFromFloat(cardSet.currentCard().renderWidth);
-        const adjustedHeight: i32 = @intFromFloat(cardSet.currentCard().renderHeight);
+        const adjustedWidth: i32  = @intFromFloat(currentCard.renderDimension.width);
+        const adjustedHeight: i32 = @intFromFloat(currentCard.renderDimension.height);
         prepareWindow(adjustedWidth, adjustedHeight);
 
         rl.beginDrawing();
         rl.clearBackground(Color.black);
 
-        cardSet.currentCard().render();
+        currentCard.render();
 
         rl.endDrawing();
         //--------------------------------------------------------------------------------------

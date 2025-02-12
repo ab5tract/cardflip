@@ -11,30 +11,26 @@ const screenWidth  = constants.ScreenWidth;
 const screenHeight = constants.ScreenHeight;
 const screenWidthFloat  = constants.WidthFloat;
 const screenHeightFloat = constants.HeightFloat;
+const screenDimension   = constants.ScreenDimension;
 
 pub const Card = struct {
     imageTexture: Texture2D,
-    renderWidth: f32,
-    renderHeight: f32,
-    textureWidth: f32,
-    textureHeight: f32,
+    renderDimension: Dim2D,
+    textureDimension: Dim2D,
 
     pub fn init(imageTexture: Texture2D) Card {
-        const textureWidth: f32  = @floatFromInt(imageTexture.width);
-        const textureHeight: f32 = @floatFromInt(imageTexture.height);
+        const textureDimension = Dim2D.init(@floatFromInt(imageTexture.width), @floatFromInt(imageTexture.height));
 
-        const tooBig = screenWidthFloat < textureWidth or screenHeightFloat < textureHeight;
-        const adjusted = determineRenderSize(textureWidth, textureHeight);
+        const tooBig = screenWidthFloat < textureDimension.width or screenHeightFloat < textureDimension.height;
+        const adjusted = constrainToRenderDimension(textureDimension, screenDimension);
 
-        const renderWidth  = if (tooBig) adjusted.width  else textureWidth;
-        const renderHeight = if (tooBig) adjusted.height else textureHeight;
+        const renderWidth  = if (tooBig) adjusted.width  else textureDimension.width;
+        const renderHeight = if (tooBig) adjusted.height else textureDimension.height;
 
         return Card {
-            .imageTexture  = imageTexture,
-            .renderWidth   = renderWidth,
-            .renderHeight  = renderHeight,
-            .textureWidth  = textureWidth,
-            .textureHeight = textureHeight
+            .imageTexture     = imageTexture,
+            .renderDimension  = Dim2D.init(renderWidth, renderHeight),
+            .textureDimension = textureDimension
         };
     }
 
@@ -42,19 +38,19 @@ pub const Card = struct {
         rl.unloadTexture(self.imageTexture);
     }
 
-    pub fn destRect(self: Card) Rectangle {
-        return Rectangle.init(0, 0, self.renderWidth, self.renderHeight);
+    pub fn renderShape(self: Card) Rectangle {
+        return Rectangle.init(0, 0, self.renderDimension.width, self.renderDimension.height);
     }
 
-    pub fn sourceRect(self: Card) Rectangle {
-        return Rectangle.init(0, 0, self.textureWidth, self.textureHeight);
+    pub fn sourceShape(self: Card) Rectangle {
+        return Rectangle.init(0, 0, self.textureDimension.width, self.textureDimension.height);
     }
 
     pub fn render(self: Card) void {
         rl.drawTexturePro(
             self.imageTexture,
-            self.sourceRect(),
-            self.destRect(),
+            self.sourceShape(),
+            self.renderShape(),
             rl.Vector2.zero(),
             0,
             rl.Color.white
@@ -62,19 +58,19 @@ pub const Card = struct {
     }
 };
 
-fn determineRenderSize(width: f32, height: f32) Dim2D {
-    const widthTooBig = screenWidthFloat < width;
-    const heightTooBig = screenWidthFloat < height;
+fn constrainToRenderDimension(source: Dim2D, render: Dim2D) Dim2D {
+    const widthTooBig  = render.width < source.width;
+    const heightTooBig = render.height < source.height;
 
-    var adjustedWidth  = width;
-    var adjustedHeight = height;
+    var adjustedWidth  = source.width;
+    var adjustedHeight = source.height;
     if (widthTooBig) {
-        const adjust = screenWidthFloat / width;
+        const adjust = render.width / source.width;
         adjustedWidth  = adjustedWidth * adjust;
         adjustedHeight = adjustedHeight * adjust;
     }
     if (heightTooBig) {
-        const adjust = screenHeightFloat / height;
+        const adjust = render.height / source.height;
         adjustedHeight = adjustedHeight * adjust;
         adjustedWidth  = adjustedWidth * adjust;
     }

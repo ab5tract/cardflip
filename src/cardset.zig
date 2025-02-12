@@ -107,7 +107,8 @@ pub const CardSet = struct {
         return self.currentCard();
     }
 
-    pub fn currentCard(self: CardSet) Card {
+    pub fn currentCard(self: CardSet) ?Card {
+        if ((self.cardCount - 1) < self.selectionIndex) return null;
         return self.cards.items[self.selectionIndex];
     }
 };
