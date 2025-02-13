@@ -25,6 +25,7 @@ const screenDimension = @import("constants.zig").ScreenDimension;
 const cardDimension = @import("constants.zig").CardDimension;
 const deskDimension = @import("constants.zig").DeskDimension;
 const Dim2D = @import("constants.zig").Dim2D;
+const addTrailingZero = @import("loading.zig").addTrailingZero;
 
 var bordersToggled: bool = false;
 
@@ -93,9 +94,7 @@ pub fn main() anyerror!void {
     var filePaths = std.ArrayList([]const u8).init(gpa.allocator());
 
     if (res.args.path) |pathParam| {
-        const rawPath = std.mem.concat(gpa.allocator(), u8, &[_][]const u8{pathParam, "\x00"})
-                                    catch return Error.Unknown;
-
+        const rawPath = addTrailingZero(pathParam, gpa.allocator()) catch return Error.Unknown;
         const path: [*:0]const u8 = @ptrCast(rawPath.ptr);
 
         std.debug.print("**** Trying to load cards from directory: {s}\n", .{pathParam});
@@ -156,9 +155,6 @@ pub fn main() anyerror!void {
 
         // Draw
         //--------------------------------------------------------------------------------------
-//        const adjustedWidth: i32  = @intFromFloat(currentCard.renderDimension.width);
-//        const adjustedHeight: i32 = @intFromFloat(currentCard.renderDimension.height);
-//        prepareWindow(adjustedWidth, adjustedHeight);
         prepareWindow(@intFromFloat(deskDimension.width), @intFromFloat(deskDimension.height));
 
         rl.beginDrawing();

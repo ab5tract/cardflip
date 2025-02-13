@@ -54,3 +54,7 @@ fn fullPath(fsPath: [*:0]const u8, fileName: []const u8, allocator: std.mem.Allo
     return std.mem.concat(allocator, u8, &[_][]const u8{ std.mem.span(fsPath), fileName })
             catch "/tmp/nonononono\x00";
 }
+
+pub fn addTrailingZero(string: []const u8, allocator: std.mem.Allocator) anyerror![]const u8 {
+    return std.mem.concat(allocator, u8, &[_][]const u8{string, "\x00"});
+}
