@@ -13,6 +13,10 @@ pub const HeightFloat: f32 = @as(f32, @floatFromInt(ScreenHeight));
 
 pub const ScreenDimension: Dim2D = Dim2D.init(WidthFloat, HeightFloat);
 
+pub const CardDimension: Dim2D = Dim2D.init(540, 1080);
+pub const DeskDimension = Dim2D.init(1200, 800);
+pub const DeskShape = Rectangle.init(0, 0, DeskDimension.width, DeskDimension.height);
+
 pub const Error = error {
     FileNotFound,
     PathNotADirectory,

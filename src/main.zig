@@ -13,14 +13,18 @@ const Rectangle = rl.Rectangle;
 const RaylibError = rl.RaylibError;
 const Error = @import("constants.zig").Error;
 
+const Desk = @import("desk.zig").Desk;
 const Card = @import("card.zig").Card;
+const Reading = @import("reading.zig").Reading;
 const CardSet = @import("cardset.zig").CardSet;
 const CardSelection = @import("cardset.zig").CardSelection;
 
 // Setup
 const screen = @import("constants.zig").Screen;
 const screenDimension = @import("constants.zig").ScreenDimension;
-const Dim2D  = @import("constants.zig").Dim2D;
+const cardDimension = @import("constants.zig").CardDimension;
+const deskDimension = @import("constants.zig").DeskDimension;
+const Dim2D = @import("constants.zig").Dim2D;
 
 var bordersToggled: bool = false;
 
@@ -53,8 +57,8 @@ pub fn main() anyerror!void {
     //--------------------------------------------------------------------------------------
     // NOTE: Textures MUST be loaded after Window initialization (OpenGL context is required)
     rl.initWindow(
-        screen.width,
-        screen.height,
+        deskDimension.width,
+        deskDimension.height,
         "Cardflip",
     );
 
@@ -113,20 +117,23 @@ pub fn main() anyerror!void {
     }
     if (filePaths.items.len == 0) return Error.NoValidImageFilesProvided;
 
-    var cardSet = CardSet.initFromFilePaths(filePaths, screenDimension, gpa.allocator());
+    var cardSet = CardSet.initFromFilePaths(filePaths, cardDimension, gpa.allocator());
     if (cardSet.cards.items.len == 0) return Error.NoValidImageFilesProvided;
 
     var currentCard: Card = cardSet.currentCard() orelse return Error.ImageNotLoadedIntoTexture;
     var texture = currentCard.imageTexture;
 
+    const reading = Reading.init(cardSet, gpa.allocator());
+    var desk = Desk.init(reading);
+
     // De-Initialization
     //--------------------------------------------------------------------------------------
     defer rl.closeWindow(); // Close window and OpenGL context
-    defer cardSet.deinit();
+    defer desk.deinit();
     //--------------------------------------------------------------------------------------
 
     rl.setTargetFPS(60); // Set our game to run at 60 frames-per-second
-    while (!rl.windowShouldClose()) {
+    while (! rl.windowShouldClose()) {
         // Update
         //--------------------------------------------------------------------------------------
         const rightDown = rl.isKeyPressed(rl.KeyboardKey.right);
@@ -149,14 +156,15 @@ pub fn main() anyerror!void {
 
         // Draw
         //--------------------------------------------------------------------------------------
-        const adjustedWidth: i32  = @intFromFloat(currentCard.renderDimension.width);
-        const adjustedHeight: i32 = @intFromFloat(currentCard.renderDimension.height);
-        prepareWindow(adjustedWidth, adjustedHeight);
+//        const adjustedWidth: i32  = @intFromFloat(currentCard.renderDimension.width);
+//        const adjustedHeight: i32 = @intFromFloat(currentCard.renderDimension.height);
+//        prepareWindow(adjustedWidth, adjustedHeight);
+        prepareWindow(@intFromFloat(deskDimension.width), @intFromFloat(deskDimension.height));
 
         rl.beginDrawing();
-        rl.clearBackground(Color.black);
+        rl.clearBackground(Color.light_gray);
 
-        currentCard.render();
+        desk.render();
 
         rl.endDrawing();
         //--------------------------------------------------------------------------------------

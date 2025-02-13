@@ -12,6 +12,9 @@ const screenHeight = constants.ScreenHeight;
 const screenWidthFloat  = constants.WidthFloat;
 const screenHeightFloat = constants.HeightFloat;
 const screenDimension   = constants.ScreenDimension;
+const deskDimension = constants.DeskDimension;
+
+const buffer = 64;
 
 pub const Card = struct {
     imageTexture: Texture2D,
@@ -22,7 +25,7 @@ pub const Card = struct {
         const textureDimension = Dim2D.init(@floatFromInt(imageTexture.width), @floatFromInt(imageTexture.height));
 
         const tooBig = constraint.width < textureDimension.width or constraint.height < textureDimension.height;
-        const adjusted = constrainToRenderDimension(textureDimension, screenDimension);
+        const adjusted = constrainToRenderDimension(textureDimension, constraint);
 
         const renderWidth  = if (tooBig) adjusted.width  else textureDimension.width;
         const renderHeight = if (tooBig) adjusted.height else textureDimension.height;
@@ -38,8 +41,10 @@ pub const Card = struct {
         rl.unloadTexture(self.imageTexture);
     }
 
-    pub fn renderShape(self: Card) Rectangle {
-        return Rectangle.init(0, 0, self.renderDimension.width, self.renderDimension.height);
+    pub fn renderShape(self: Card, column: f32) Rectangle {
+        const width  = (column * self.renderDimension.width) + ((column + 1) * buffer);
+        const height = (deskDimension.height / 2) - (self.renderDimension.height / 2);
+        return Rectangle.init(width, height, self.renderDimension.width, self.renderDimension.height);
     }
 
     pub fn sourceShape(self: Card) Rectangle {
