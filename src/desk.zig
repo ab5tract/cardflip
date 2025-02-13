@@ -28,22 +28,7 @@ pub const Desk = struct {
         self.reading.deinit();
     }
 
-    pub fn render(self: Desk) void {
-        var slotCount: f32 = 0;
-        for (self.reading.slotOrder.items) |slot| {
-            const cardIndex = self.reading.slots.get(slot.name) orelse continue;
-            const card = self.reading.cardSet.cards.items[cardIndex];
-
-            rl.drawTexturePro(
-                card.imageTexture,
-                card.sourceShape(),
-                card.renderShape(slotCount),
-                rl.Vector2.zero(),
-                0,
-                Color.white
-            );
-
-            slotCount += 1;
-        }
+    pub fn render(self: *Desk) void {
+        self.reading.render();
     }
 };

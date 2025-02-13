@@ -48,6 +48,25 @@ pub const Reading = struct {
         self.cardSet.deinit();
     }
 
+    pub fn render(self: Reading) void {
+        var slotCount: f32 = 0;
+        for (self.slotOrder.items) |slot| {
+            const cardIndex = self.slots.get(slot.name) orelse continue;
+            const card = self.cardSet.cards.items[cardIndex];
+
+            rl.drawTexturePro(
+                card.imageTexture,
+                card.sourceShape(),
+                card.renderShape(slotCount),
+                rl.Vector2.zero(),
+                0,
+                Color.white
+            );
+
+            slotCount += 1;
+        }
+    }
+
     fn fillSlots(slotOrder: ArrayList(ReadingSlot), cardSet: *CardSet, allocator: std.mem.Allocator) std.StringHashMap(usize) {
         var slots = std.StringHashMap(usize).init(allocator);
         for (slotOrder.items) |slot| {
