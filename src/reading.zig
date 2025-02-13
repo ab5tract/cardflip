@@ -11,59 +11,72 @@ const Dim2D = constants.Dim2D;
 const Card = @import("card.zig").Card;
 const CardSet = @import("cardset.zig").CardSet;
 
-pub const ReadingSlot = struct {
-    name: []const u8,
-    row: u3,
-
-    pub fn init(name: []const u8, row: u3) ReadingSlot {
-        return ReadingSlot {
-            .name = name,
-            .row  = row
-        };
-    }
-};
+const ReadingSlot = @import("readingslot.zig").ReadingSlot;
 
 pub const Reading = struct {
-    slots: std.StringHashMap(usize),
-    slotOrder: ArrayList(ReadingSlot),
+    slotIndexes: std.StringHashMap(usize),
+    slots: ArrayList(ReadingSlot),
     cardSet: CardSet,
+    nextFlippedIndex: usize = 0,
+    flipOrder: ArrayList(u8),
 
     pub fn init(cardSet: CardSet, allocator: std.mem.Allocator) Reading {
-        var slotOrder = ArrayList(ReadingSlot).init(allocator);
-        slotOrder.append(ReadingSlot.init("Past", 1)) catch {};
-        slotOrder.append(ReadingSlot.init("Present", 1)) catch {};
-        slotOrder.append(ReadingSlot.init("Future", 1)) catch {};
+        var slots = ArrayList(ReadingSlot).init(allocator);
+        slots.append(ReadingSlot.init("Past", 1)) catch {};
+        slots.append(ReadingSlot.init("Present", 1)) catch {};
+        slots.append(ReadingSlot.init("Future", 1)) catch {};
 
-        const slots = fillSlots(slotOrder, @constCast(&cardSet), allocator);
+        const slotIndexes = fillSlots(slots, @constCast(&cardSet), allocator);
+        var flipOrder = ArrayList(u8).init(allocator);
+        flipOrder.append(2) catch {};
+        flipOrder.append(1) catch {};
+        flipOrder.append(3) catch {};
+
         return Reading {
+            .slotIndexes = slotIndexes,
             .slots = slots,
-            .slotOrder = slotOrder,
-            .cardSet = cardSet
+            .cardSet = cardSet,
+            .flipOrder = flipOrder
         };
     }
 
     pub fn deinit(self: *Reading) void {
+        self.slotIndexes.deinit();
         self.slots.deinit();
-        self.slotOrder.deinit();
+        self.flipOrder.deinit();
         self.cardSet.deinit();
     }
 
-    pub fn render(self: Reading) void {
+    pub fn render(reading: Reading) void {
         var slotCount: f32 = 0;
-        for (self.slotOrder.items) |slot| {
-            const cardIndex = self.slots.get(slot.name) orelse continue;
-            const card = self.cardSet.cards.items[cardIndex];
+        var slots = reading.slotIndexes;
+        for (reading.slots.items) |*slot| {
+            const cardIndex = slots.get(slot.*.name) orelse continue;
+            const card = reading.cardSet.cards.items[cardIndex];
 
-            rl.drawTexturePro(
-                card.imageTexture,
-                card.sourceShape(),
-                card.renderShape(slotCount),
-                rl.Vector2.zero(),
-                0,
-                Color.white
-            );
+            if (slot.*.drawn) {
+                rl.drawTexturePro(
+                    card.imageTexture,
+                    card.sourceShape(),
+                    card.renderShape(slotCount),
+                    rl.Vector2.zero(),
+                    0,
+                    Color.white
+                );
+            } else {
+                rl.drawRectangleRec(card.renderShape(slotCount), Color.purple);
+            }
 
             slotCount += 1;
+        }
+    }
+
+    pub fn drawNextCard(self: *Reading) void {
+        if (self.nextFlippedIndex < self.slots.items.len) {
+            const flipIndex = self.flipOrder.items[self.nextFlippedIndex] - 1;
+            var flipThis = &self.slots.items[flipIndex];
+            self.nextFlippedIndex += 1;
+            flipThis.setDrawn();
         }
     }
 
@@ -71,7 +84,7 @@ pub const Reading = struct {
         var slots = std.StringHashMap(usize).init(allocator);
         for (slotOrder.items) |slot| {
             if (cardSet.selectNextCardRandomly() != null) {
-                std.debug.print(">>>> Trying to put card into slot {s}\n", .{slot.name});
+                std.debug.print(">>>> Trying to put card into slot: {s}\n", .{slot.name});
                 slots.put(slot.name, cardSet.selectionIndex) catch continue;
             }
         }

@@ -116,11 +116,8 @@ pub fn main() anyerror!void {
     }
     if (filePaths.items.len == 0) return Error.NoValidImageFilesProvided;
 
-    var cardSet = CardSet.initFromFilePaths(filePaths, cardDimension, gpa.allocator());
+    const cardSet = CardSet.initFromFilePaths(filePaths, cardDimension, gpa.allocator());
     if (cardSet.cards.items.len == 0) return Error.NoValidImageFilesProvided;
-
-    var currentCard: Card = cardSet.currentCard() orelse return Error.ImageNotLoadedIntoTexture;
-    var texture = currentCard.imageTexture;
 
     const reading = Reading.init(cardSet, gpa.allocator());
     var desk = Desk.init(reading);
@@ -135,21 +132,10 @@ pub fn main() anyerror!void {
     while (! rl.windowShouldClose()) {
         // Update
         //--------------------------------------------------------------------------------------
-        const rightDown = rl.isKeyPressed(rl.KeyboardKey.right);
-        const leftDown  = rl.isKeyPressed(rl.KeyboardKey.left);
         const upDown    = rl.isKeyPressed(rl.KeyboardKey.up);
 
         if (upDown) {
-            if (cardSet.selectNextCard(CardSelection.Random)) |card| {
-                currentCard = card;
-                texture = currentCard.imageTexture;
-            }
-        } else if (rightDown or leftDown) {
-            const direction = if (rightDown) CardSelection.Right else CardSelection.Left;
-            if (cardSet.selectNextCard(direction)) |card| {
-                currentCard = card;
-                texture = currentCard.imageTexture;
-            }
+            desk.drawNextCard();
         }
         //--------------------------------------------------------------------------------------
 

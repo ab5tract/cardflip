@@ -24,11 +24,15 @@ pub const Desk = struct {
         };
     }
 
-    pub fn deinit(self: *Desk) void {
-        self.reading.deinit();
+    pub fn deinit(desk: *Desk) void {
+        desk.reading.deinit();
     }
 
-    pub fn render(self: *Desk) void {
-        self.reading.render();
+    pub fn render(desk: *Desk) void {
+        Reading.render(desk.reading);
+    }
+
+    pub fn drawNextCard(desk: *Desk) void {
+        Reading.drawNextCard(&desk.reading);
     }
 };
