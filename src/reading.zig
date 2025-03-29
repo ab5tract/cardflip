@@ -19,7 +19,6 @@ pub const Reading = struct {
     cardSet: CardSet,
     nextFlippedIndex: usize = 0,
     flipOrder: ArrayList(u8),
-    allocator: std.mem.Allocator,
 
     pub fn init(cardSet: CardSet, allocator: std.mem.Allocator) Reading {
         var slots = ArrayList(ReadingSlot).init(allocator);
@@ -37,8 +36,7 @@ pub const Reading = struct {
             .slotIndexes = slotIndexes,
             .slots = slots,
             .cardSet = cardSet,
-            .flipOrder = flipOrder,
-            .allocator = allocator
+            .flipOrder = flipOrder
         };
     }
 
