@@ -132,10 +132,14 @@ pub fn main() anyerror!void {
     while (! rl.windowShouldClose()) {
         // Update
         //--------------------------------------------------------------------------------------
-        const upDown    = rl.isKeyPressed(rl.KeyboardKey.up);
+        const upPressed    = rl.isKeyPressed(rl.KeyboardKey.up);
 
-        if (upDown) {
+        if (upPressed) {
             desk.drawNextCard();
+        }
+
+        if (rl.isKeyPressed(rl.KeyboardKey.r)) {
+            desk.reading.resetReading(gpa.allocator());
         }
         //--------------------------------------------------------------------------------------
 

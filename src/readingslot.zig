@@ -12,7 +12,7 @@ pub const ReadingSlot = struct {
         };
     }
 
-    pub fn setDrawn(slot: *ReadingSlot) void {
-        slot.drawn = true;
+    pub fn setDrawn(slot: *ReadingSlot, setting: bool) void {
+        slot.drawn = setting;
     }
 };

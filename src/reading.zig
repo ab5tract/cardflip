@@ -19,12 +19,13 @@ pub const Reading = struct {
     cardSet: CardSet,
     nextFlippedIndex: usize = 0,
     flipOrder: ArrayList(u8),
+    allocator: std.mem.Allocator,
 
     pub fn init(cardSet: CardSet, allocator: std.mem.Allocator) Reading {
         var slots = ArrayList(ReadingSlot).init(allocator);
-        slots.append(ReadingSlot.init("Past", 1)) catch {};
-        slots.append(ReadingSlot.init("Present", 1)) catch {};
-        slots.append(ReadingSlot.init("Future", 1)) catch {};
+        slots.append(ReadingSlot.init("Inner Reality", 1)) catch {};
+        slots.append(ReadingSlot.init("Topic", 1)) catch {};
+        slots.append(ReadingSlot.init("Outer Reality", 1)) catch {};
 
         const slotIndexes = fillSlots(slots, @constCast(&cardSet), allocator);
         var flipOrder = ArrayList(u8).init(allocator);
@@ -36,7 +37,8 @@ pub const Reading = struct {
             .slotIndexes = slotIndexes,
             .slots = slots,
             .cardSet = cardSet,
-            .flipOrder = flipOrder
+            .flipOrder = flipOrder,
+            .allocator = allocator
         };
     }
 
@@ -64,19 +66,19 @@ pub const Reading = struct {
                     Color.white
                 );
             } else {
-                rl.drawRectangleRec(card.renderShape(slotCount), Color.purple);
+                rl.drawRectangleRec(card.renderShape(slotCount), Color.magenta);
             }
 
             slotCount += 1;
         }
     }
 
-    pub fn drawNextCard(self: *Reading) void {
-        if (self.nextFlippedIndex < self.slots.items.len) {
-            const flipIndex = self.flipOrder.items[self.nextFlippedIndex] - 1;
-            var flipThis = &self.slots.items[flipIndex];
-            self.nextFlippedIndex += 1;
-            flipThis.setDrawn();
+    pub fn drawNextCard(reading: *Reading) void {
+        if (reading.nextFlippedIndex < reading.slots.items.len) {
+            const flipIndex = reading.flipOrder.items[reading.nextFlippedIndex] - 1;
+            var flipThis = &reading.slots.items[flipIndex];
+            reading.nextFlippedIndex += 1;
+            flipThis.setDrawn(true);
         }
     }
 
@@ -89,5 +91,17 @@ pub const Reading = struct {
             }
         }
         return slots;
+    }
+
+    pub fn resetReading(reading: *Reading, allocator: std.mem.Allocator) void {
+        std.debug.print(">>>> Resetting the reading...\n", .{});
+
+        reading.slotIndexes.deinit();
+        reading.slotIndexes = fillSlots(reading.slots, @constCast(&reading.cardSet), allocator);
+        reading.nextFlippedIndex = 0;
+
+        for (reading.slots.items) |*slot| { slot.setDrawn(false); }
+
+        std.debug.print(">>>> Reset successful!\n", .{});
     }
 };
